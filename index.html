@@ -124,14 +124,14 @@ var flag_labels = "off"; // Check-box for labeling not ticked
 var flag_selected_elements = "off" // No specific elements selected for viewing, so show all
 
 var force = d3.layout.force()
-    .charge(-500)
-    .linkDistance(300)
-    //.linkStrength(0.1)
-    .gravity(0.1) //was: 0.2
+    .charge(-300)  // Reduced from -500 for faster calculations
+    .linkDistance(200)  // Reduced from 300 for tighter layout
+    .gravity(0.15) // Slightly increased for faster stabilization
+    .friction(0.85)  // Added friction for faster settling
     .size([width, height]);    
     
-
-d3.json("https://raw.githubusercontent.com/Kamal-Ahmed/DQMS_Elements_Relations.github.io/main/Data/Data.json", function (error, graph) {
+// OPTIMIZATION: Load data locally instead of from GitHub raw URL
+d3.json("Data/Data.json", function (error, graph) {
             
             if (error) {
                 return console.warn(error);
@@ -204,8 +204,8 @@ var svg_status_text = d3.select("svg").append("svg")
     .text("Preparing visualisation ....")
     .attr("font-family", "Arial, Helvetica, sans-serif")
     .style("font", "14px Arial")
-    .transition(3000)
-	.duration(2000)			
+    .transition(1500)  // Reduced from 3000
+	.duration(1000)    // Reduced from 2000
     .style("opacity", 0)
     .style('pointer-events', 'none');
 
@@ -272,7 +272,8 @@ setTimeout(function() {
         
     force.start();
     
-    for (var i = 500; i > 0; --i) force.tick();
+    // Reduced iterations from 500 to 150 for faster initial layout
+    for (var i = 150; i > 0; --i) force.tick();
 
     force.stop();
         
@@ -460,7 +461,7 @@ function mouseover(d) {
 
 if (flag_selected_elements === "off") {
 
-d3.select(this).select("circle").attr("r", 10).style("stroke","black").transition().duration(100)
+d3.select(this).select("circle").attr("r", 10).style("stroke","black")
 
 //var node_name_filter = "Policy"
 
@@ -471,13 +472,13 @@ d3.select(this)
         .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff")
 
 
-d3.selectAll(".link").style("stroke","#666").transition().duration(100)
+d3.selectAll(".link").style("stroke","#666")
     .style("opacity", function(o) {
             return o.source === d || o.target === d ? 1 : 0.1;
     });
     
 
-d3.selectAll("circle").transition().duration(100)
+d3.selectAll("circle")
         .style("stroke", function(o) {
             //console.log(neighboring(d, o));
             //return neighboring(d, o) ? "black" : "white";         
@@ -486,14 +487,14 @@ d3.selectAll("circle").transition().duration(100)
         })    
 
 
-d3.selectAll(".node").transition().duration(100)
+d3.selectAll(".node")
         .style("opacity", function(o) {
             return neighboring(d, o) ? 1 : .1;
         })        
      
         if ( (flag_links === "on"  && flag_labels === "off") || (flag_links === "on"  && flag_labels === "on") ){
 
-        d3.selectAll(".edgelabel").transition().duration(100)
+        d3.selectAll(".edgelabel")
         .style("opacity", function(o) {
             return o.source === d || o.target === d ? 1 : 0;
         })
@@ -540,8 +541,8 @@ console.log("context menu used")
 function mouseout(d) {
     
 div.transition()
-    .delay(4000)
-    .duration(1000)
+    .delay(2000)
+    .duration(500)
     .style("opacity", 0)
     .style('pointer-events', 'none') //hide mouse-pointer when moving the mouse-pointer away from node
 
@@ -555,27 +556,27 @@ div.transition()
         .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff");
     
     div.transition()
-    .delay(4000)
-    .duration(1000)
+    .delay(2000)
+    .duration(500)
     .style("opacity", 0)
     .style('pointer-events', 'none') //hide mouse-pointer when moving the mouse-pointer away from node
     
 
 d3.selectAll(".link").style("stroke","#666").style("stroke-width",1.5);    
 
-d3.selectAll(".link").transition().duration(100)
+d3.selectAll(".link")
   .style("opacity", 0.5);
 
-d3.selectAll(".node").transition().duration(100)
+d3.selectAll(".node")
   .style("opacity", 1);    
 
   if ( (flag_links === "on"  && flag_labels === "on") ) { // check-box ticked, so show all labels
     
-    d3.selectAll(".edgelabel").transition().duration(100).style("opacity", 1);
+    d3.selectAll(".edgelabel").style("opacity", 1);
   
   } else {
 
-    d3.selectAll(".edgelabel").transition().duration(100).style("opacity", 0);
+    d3.selectAll(".edgelabel").style("opacity", 0);
 
   }
 
@@ -623,6 +624,7 @@ function zoom() {
 
 function zoom()
 {
+    // console.log("Zooming: ", d3.event.translate, d3.event.scale);
     var scale = d3.event.scale,
         translation = d3.event.translate
     d3.select(".drawarea")

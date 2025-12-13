@@ -1,7 +1,21 @@
+
+/* Performance optimizations */
+svg {
+    will-change: transform;
+    contain: layout style paint;
+}
+
+.drawarea {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
 .node {
     stroke: #ffffff;
     stroke-width: 1.5px;
     cursor: pointer;
+    will-change: opacity, transform;
+    contain: layout;
   }
   
 .link {
@@ -11,7 +25,8 @@
     stroke: #666;
     stroke-width: 1.5px;
     display: none;
-  
+    will-change: opacity;
+    contain: layout;
   }
   
     
@@ -43,6 +58,8 @@ input {
 .edgelabel {
 
   opacity: 0;
+  will-change: opacity;
+  contain: layout;
 
   }
 
