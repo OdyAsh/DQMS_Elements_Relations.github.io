@@ -116,6 +116,8 @@ var padding = 1.5, clusterPadding = 6, maxRadius = 12, count = 0;
 
 var n, m = 20; 
 
+var toggle = 0;
+
 const color = ["#C40233","#9DC3E6", "#5B9BD5", "#1F4E79", "#FF8E1D", "#FFEB3B"];
 
 // Initialize: the network diagram is shown with all links and relationship labels hidden
@@ -329,6 +331,7 @@ setTimeout(function() {
         .attr("class", "node")
         .on("mouseover", mouseover)        
         .on("mouseout", mouseout)
+        .on("click", click)
         .on("contextmenu", context_menu)
         .call(force.drag);
     
@@ -385,68 +388,7 @@ graph.links.forEach(function(d) {
         });
 
         
-        node.on("click", function(d) {
-    
-    //If node is dragged to a new position, the tooltip is not shown:    
-    if (d3.event.defaultPrevented) return;
-    
-    var str_link_status
 
-    var mouse_x, mouse_y
-
-    mouse_x = d3.event.pageX
-    mouse_y = d3.event.pageY
-
-    if (mouse_x + 110 > 1480){
-
-        mouse_x = mouse_x - 120
-
-    }
-
-    if (mouse_y - 15 < 115){
-
-        mouse_y = mouse_y + 10
-
-    } else {
-
-        mouse_y = mouse_y - 30
-
-    }
-    
-    if (d.wiki_link === "-"){
-        //There is no wiki link, so insert a non-clickable link (static text) as the last entry in html table for tooltip:
-        str_link_status = "<td id=2>" + "-" + "</td>"
-        } else{
-        //There is a wiki link, so insert a clickable link as the last entry in the table for tooltip:
-            str_link_status = "<td id=2>" + "<a href=" + d.wiki_link + " target='_blank'>" + "Link" + "</a>" + "</td>"
-        }
-
-        div.transition()
-				.duration(3000)				
-                .style("opacity", 0);
-                div.transition()
-				.duration(3000)
-				.style("opacity", .9)
-                .style('pointer-events', 'visible');
-
-
-        div.html(
-                    
-                "<table>" +         
-                    "<tr>" +
-                        "<td>" + "<strong>" + "Wiki source: " + "</strong>" + "</td>" +
-                        str_link_status +
-                    "</tr>" +
-                "</table>"                    
-                    
-                    )
-
-                    .style("left", (mouse_x + 0) + "px")
-                    .style("top", (mouse_y) + "px")                    
-         
-                    //console.log(d3.event.pageX, d3.event.pageY)
-
-    });
 
 
         }, 30);
@@ -458,72 +400,133 @@ function neighboring(a, b) {
 
 
 function mouseover(d) {
+    var str_link_status;
+    var mouse_x = d3.event.pageX;
+    var mouse_y = d3.event.pageY;
 
-if (flag_selected_elements === "off") {
+    if (mouse_x + 110 > 1480) {
+        mouse_x = mouse_x - 120;
+    }
 
-d3.select(this).select("circle").attr("r", 10).style("stroke","black")
+    if (mouse_y - 15 < 115) {
+        mouse_y = mouse_y + 10;
+    } else {
+        mouse_y = mouse_y - 30;
+    }
 
-//var node_name_filter = "Policy"
+    if (d.wiki_link === "-") {
+        str_link_status = "<td id=2>" + "-" + "</td>";
+    } else {
+        str_link_status = "<td id=2>" + "<a href=" + d.wiki_link + " target='_blank'>" + "Link" + "</a>" + "</td>";
+    }
 
-d3.select(this)
-        .select("text")
-        .attr("x", 4)
-        .style("font", "bold 16px Arial")
-        .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff")
+    div.transition()
+        .duration(200)
+        .style("opacity", .9)
+        .style('pointer-events', 'visible');
 
-
-d3.selectAll(".link").style("stroke","#666")
-    .style("opacity", function(o) {
-            return o.source === d || o.target === d ? 1 : 0.1;
-    });
-    
-
-d3.selectAll("circle")
-        .style("stroke", function(o) {
-            //console.log(neighboring(d, o));
-            //return neighboring(d, o) ? "black" : "white";         
-            if (neighboring(d, o) == 1) {return "black"}
-            else {return "white"}
-        })    
-
-
-d3.selectAll(".node")
-        .style("opacity", function(o) {
-            return neighboring(d, o) ? 1 : .1;
-        })        
-     
-        if ( (flag_links === "on"  && flag_labels === "off") || (flag_links === "on"  && flag_labels === "on") ){
-
-        d3.selectAll(".edgelabel")
-        .style("opacity", function(o) {
-            return o.source === d || o.target === d ? 1 : 0;
-        })
-        
-
-        .style("fill", function(o) {
-            return o.source === d || o.target === d ? "black" : "#666";
-        });
-      
-        }
-    
-        d3.selectAll("#arrowhead")
-        .attr('viewBox','-0 -3 10 10')
-        .attr('refX',16)
-        .attr('refY',0.01)
-        .attr('orient','auto')
-        .attr('markerWidth',11)
-        .attr('markerHeight',7)
-        .attr('xoverflow','visible')
-        .append('svg:path')
-        .attr('d', 'M 0,-3 L 10 ,0 L 0,3 z')
-        .attr('fill', '#666')
-        .style('stroke','none');
-
-        //console.log(flag_labels);
-
-
+    div.html(
+        "<table>" +
+        "<tr>" +
+        "<td>" + "<strong>" + "Wiki source: " + "</strong>" + "</td>" +
+        str_link_status +
+        "</tr>" +
+        "</table>"
+    )
+    .style("left", (mouse_x + 0) + "px")
+    .style("top", (mouse_y) + "px");
 }
 
+function click(d) {
+    if (d3.event.defaultPrevented) return;
+
+    if (flag_selected_elements === "off") {
+        if (toggle == 0) {
+            // Highlight logic
+            d3.select(this).select("circle").attr("r", 10).style("stroke", "black");
+
+            d3.select(this)
+                .select("text")
+                .attr("x", 4)
+                .style("font", "bold 16px Arial")
+                .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff");
+
+            d3.selectAll(".link").style("stroke", "#666")
+                .style("opacity", function(o) {
+                    return o.source === d || o.target === d ? 1 : 0.1;
+                });
+
+            d3.selectAll("circle")
+                .style("stroke", function(o) {
+                    if (neighboring(d, o) == 1) { return "black" }
+                    else { return "white" }
+                });
+
+            d3.selectAll(".node")
+                .style("opacity", function(o) {
+                    return neighboring(d, o) ? 1 : .1;
+                });
+
+            if ((flag_links === "on" && flag_labels === "off") || (flag_links === "on" && flag_labels === "on")) {
+                d3.selectAll(".edgelabel")
+                    .style("opacity", function(o) {
+                        return o.source === d || o.target === d ? 1 : 0;
+                    })
+                    .style("fill", function(o) {
+                        return o.source === d || o.target === d ? "black" : "#666";
+                    });
+            }
+            
+            d3.selectAll("#arrowhead")
+                .attr('viewBox','-0 -3 10 10')
+                .attr('refX',16)
+                .attr('refY',0.01)
+                .attr('orient','auto')
+                .attr('markerWidth',11)
+                .attr('markerHeight',7)
+                .attr('xoverflow','visible')
+                .append('svg:path')
+                .attr('d', 'M 0,-3 L 10 ,0 L 0,3 z')
+                .attr('fill', '#666')
+                .style('stroke','none');
+
+            toggle = 1;
+        } else {
+            // Reset logic
+            d3.selectAll("circle").attr("r", 8).style("stroke", "white");
+            d3.select(this).select("text")
+                .attr("x", 1)
+                .style("font", "bold 12px Arial")
+                .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff");
+
+            d3.selectAll(".link").style("stroke", "#666").style("stroke-width", 1.5);
+            d3.selectAll(".link").style("opacity", 0.5);
+            d3.selectAll(".node").style("opacity", 1);
+
+            if ((flag_links === "on" && flag_labels === "on")) {
+                d3.selectAll(".edgelabel").style("opacity", 1);
+            } else {
+                d3.selectAll(".edgelabel").style("opacity", 0);
+            }
+
+            d3.selectAll(".edgelabel").style("fill", "grey");
+            
+            d3.selectAll("#arrowhead")
+                .attr('viewBox','-0 -3 10 10')
+                .attr('refX',16)
+                .attr('refY',0.01)
+                .attr('orient','auto')
+                .attr('markerWidth',11)
+                .attr('markerHeight',7)
+                .attr('xoverflow','visible')
+                .append('svg:path')
+                .attr('d', 'M 0,-3 L 10 ,0 L 0,3 z')
+                .attr('fill', '#666')
+                .style('stroke','none');
+
+            toggle = 0;
+        }
+    }
 }
 
 
@@ -539,70 +542,10 @@ console.log("context menu used")
 
 
 function mouseout(d) {
-    
-div.transition()
-    .delay(2000)
-    .duration(500)
-    .style("opacity", 0)
-    .style('pointer-events', 'none') //hide mouse-pointer when moving the mouse-pointer away from node
-
-    if (flag_selected_elements === "off") {
-
-   // Change node's text font-size and circle radius back to their original sizes:   
-   d3.selectAll("circle").attr("r", 8).style("stroke", "white");
-        d3.select(this).select("text")        
-        .attr("x", 1)        
-        .style("font", "bold 12px Arial")
-        .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff");
-    
     div.transition()
-    .delay(2000)
-    .duration(500)
-    .style("opacity", 0)
-    .style('pointer-events', 'none') //hide mouse-pointer when moving the mouse-pointer away from node
-    
-
-d3.selectAll(".link").style("stroke","#666").style("stroke-width",1.5);    
-
-d3.selectAll(".link")
-  .style("opacity", 0.5);
-
-d3.selectAll(".node")
-  .style("opacity", 1);    
-
-  if ( (flag_links === "on"  && flag_labels === "on") ) { // check-box ticked, so show all labels
-    
-    d3.selectAll(".edgelabel").style("opacity", 1);
-  
-  } else {
-
-    d3.selectAll(".edgelabel").style("opacity", 0);
-
-  }
-
-d3.selectAll(".edgelabel").style("fill", "grey");
-
-
-d3.selectAll("#arrowhead")
-  .attr('viewBox','-0 -3 10 10')
-  .attr('refX',16)
-  .attr('refY',0.01)
-  .attr('orient','auto')
-  .attr('markerWidth',11)
-  .attr('markerHeight',7)
-  .attr('xoverflow','visible')
-  .append('svg:path')
-  .attr('d', 'M 0,-3 L 10 ,0 L 0,3 z')
-  .attr('fill', '#666')
-  .style('stroke','none');
-
-
-    //Added to ensure that during mouseout subsequent events are stopped
-    if (d3.event.stopPropagation) return;
-
-}
-
-
+        .duration(500)
+        .style("opacity", 0)
+        .style('pointer-events', 'none');
 }
 
 function mouseover_edges(d)
