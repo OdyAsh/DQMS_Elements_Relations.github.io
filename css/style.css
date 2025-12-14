@@ -3,30 +3,44 @@
 svg {
     will-change: transform;
     contain: layout style paint;
+    background: transparent !important;
 }
 
 .drawarea {
     will-change: transform;
-    transform: translateZ(0);
+    /* transform: translateZ(0); */
 }
 
 .node {
-    stroke: #ffffff;
-    stroke-width: 1.5px;
+    stroke: oklch(var(--bc) / 0.2);
+    stroke-width: 2px;
     cursor: pointer;
     will-change: opacity, transform;
     contain: layout;
+    transition: stroke 0.3s ease, filter 0.2s ease;
+  }
+  
+.node:hover {
+    stroke: oklch(var(--p));
+    stroke-width: 2.5px;
+    filter: brightness(1.1);
   }
   
 .link {
     /*stroke: #999;*/
-    opacity: 0.5;
+    opacity: 0.4;
     /*fill: none;*/
-    stroke: #666;
-    stroke-width: 1.5px;
+    stroke: oklch(var(--bc) / 0.3);
+    stroke-width: 2px;
     display: none;
     will-change: opacity;
     contain: layout;
+    transition: stroke 0.3s ease, opacity 0.3s ease;
+  }
+  
+.link:hover {
+    opacity: 0.7;
+    stroke: oklch(var(--p) / 0.6);
   }
   
     
@@ -56,11 +70,11 @@ input {
   }
 
 .edgelabel {
-
   opacity: 0;
   will-change: opacity;
   contain: layout;
-
+  fill: oklch(var(--bc) / 0.7);
+  transition: opacity 0.3s ease, fill 0.3s ease;
   }
 
 a:link {
@@ -364,4 +378,163 @@ ul li { padding: 2px 0px; }
 .body {
   overflow-x:hidden;
   overflow-y:hidden;
+}
+
+/* Graph container theming */
+#chart {
+  background: transparent;
+}
+
+#chart svg {
+  background: transparent !important;
+}
+
+/* Node styling for theme support */
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  stroke: rgba(26, 26, 26, 0.2);
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .node circle {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+.node:hover circle {
+  stroke: oklch(var(--p));
+  stroke-width: 2.5px;
+  filter: brightness(1.1) drop-shadow(0 4px 8px oklch(var(--bc) / 0.25));
+}
+
+.node text {
+  fill: #1a1a1a !important;
+  stroke: #ffffff !important;
+  transition: fill 0.3s ease, stroke 0.3s ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+[data-theme="dark"] .node text {
+  fill: #ffffff !important;
+  stroke: #1a1a1a !important;
+}
+
+/* Edge/Link styling */
+.link {
+  stroke: rgba(26, 26, 26, 0.3);
+  transition: stroke 0.3s ease, opacity 0.3s ease;
+}
+
+[data-theme="dark"] .link {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+.edgepath {
+  transition: stroke 0.3s ease;
+}
+
+/* Edge label styling */
+.edgelabel {
+  fill: rgba(26, 26, 26, 0.7) !important;
+  transition: fill 0.3s ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+[data-theme="dark"] .edgelabel {
+  fill: rgba(255, 255, 255, 0.7) !important;
+}
+
+.edgelabel textPath {
+  stroke: #ffffff !important;
+  fill: rgba(26, 26, 26, 0.7) !important;
+  transition: stroke 0.3s ease, fill 0.3s ease;
+}
+
+[data-theme="dark"] .edgelabel textPath {
+  stroke: #1a1a1a !important;
+  fill: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Tooltip theming */
+.tooltip-d3 {
+  background-color: oklch(var(--b1)) !important;
+  color: oklch(var(--bc)) !important;
+  border: 1px solid oklch(var(--bc) / 0.2) !important;
+  box-shadow: 0 4px 12px oklch(var(--bc) / 0.15) !important;
+  backdrop-filter: blur(8px);
+  font-weight: 500;
+}
+
+/* Arrow marker theme support */
+.arrow-marker {
+  fill: rgba(26, 26, 26, 0.5) !important;
+  transition: fill 0.3s ease;
+}
+
+[data-theme="dark"] .arrow-marker {
+  fill: rgba(255, 255, 255, 0.5) !important;
+}
+
+#arrowhead path {
+  fill: rgba(26, 26, 26, 0.5) !important;
+  transition: fill 0.3s ease;
+}
+
+[data-theme="dark"] #arrowhead path {
+  fill: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Smooth transitions for all SVG elements when theme changes */
+svg * {
+  transition: fill 0.3s ease, stroke 0.3s ease;
+}
+
+/* Search functionality styles */
+#node-search-input {
+  width: 200px !important;
+  color: oklch(var(--bc)) !important;
+  background-color: oklch(var(--b1)) !important;
+  caret-color: oklch(var(--bc)) !important;
+}
+
+#node-search-input::placeholder {
+  color: oklch(var(--bc) / 0.5) !important;
+}
+
+#node-search-input:focus {
+  outline: 2px solid oklch(var(--p)) !important;
+  outline-offset: 2px !important;
+  color: oklch(var(--bc)) !important;
+}
+
+#search-results {
+  margin-top: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+#search-results li a {
+  padding: 0.5rem 0.75rem;
+}
+
+#search-results li a:hover {
+  background: oklch(var(--p) / 0.1);
+}
+
+#search-results mark {
+  font-weight: 600;
+}
+
+.search-result-item {
+  cursor: pointer;
+}
+
+/* Responsive search input */
+@media (max-width: 768px) {
+  #node-search-input {
+    width: 150px !important;
+  }
 }

@@ -1,888 +1,525 @@
 <!DOCTYPE html>
-
-  <head>
-   
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DQMS Elements and Relationships</title>
+    
+    <!-- Tailwind CSS Browser (v4) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <!-- DaisyUI v5 -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+    
+    <!-- Custom CSS for D3 -->
     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen, projection"/>
 
+    <style>
+        /* Smooth theme transitions */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        /* D3 visualization container */
+        #chart {
+            position: relative;
+            min-height: 630px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+        }
+        
+        #chart svg {
+            max-width: 100%;
+            height: auto;
+            background: transparent !important;
+        }
+        
+        /* Ensure all SVG elements respect theme */
+        #chart svg * {
+            transition: fill 0.3s ease, stroke 0.3s ease, opacity 0.2s ease;
+        }
+        
+        /* Interactive filter buttons */
+        .filter-btn {
+            user-select: none;
+        }
+        
+        .filter-btn:active {
+            transform: scale(0.96);
+        }
+        
+        /* Hover effect for color dots */
+        .filter-btn:hover > div {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px rgba(var(--fallback-p,oklch(var(--p))), 0.15);
+        }
+        
+        .filter-btn > div {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        /* Active state ring animation */
+        @keyframes ringPulse {
+            0% { box-shadow: 0 0 0 0 rgba(var(--fallback-p,oklch(var(--p))), 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(var(--fallback-p,oklch(var(--p))), 0); }
+            100% { box-shadow: 0 0 0 0 rgba(var(--fallback-p,oklch(var(--p))), 0); }
+        }
+        
+        /* Prevent old CSS from creating duplicate elements */
+        .filter-btn::before,
+        .filter-btn::after {
+            display: none !important;
+        }
+        
+        /* Ensure only one circle per filter button */
+        .filter-btn > div:not(:first-of-type) {
+            display: none;
+        }
+    </style>
   </head>
-  
-  <body>
-  
-  <div id="chart"></div>
-      
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.2.2/d3.v3.min.js"></script>
-        
-    <div class="frame_legend"><div id="main_title">Data Quality Management System: Elements and Relationships</div>
-    
-        <div id="sub_title">JSON dataset version: 0.5. Visualisation version: 1.0.</div>     
-        <div class="dot1">
-            <div class="t1">Supporting/Uncategorised element</div>
+<body class="min-h-screen bg-base-200">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-base-100 z-50 flex items-center justify-center">
+        <div class="text-center space-y-4">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <p class="text-lg font-semibold text-base-content">Loading DQMS Visualization...</p>
         </div>
-    
-        <div class="dot4">
-            <div class="t4">Operational element</div>
-        </div>
-    
-        <div class="dot2">
-            <div class="t2">Tactical element</div>
-        </div>
-            
-        <div class="dot3">
-            <div class="t3">Strategic element</div>
-        </div>
-        
-        <div class="dot5">
-            <div class="t5">Objective element</div>
-        </div>
-
-        <div class="dot6">
-            <div class="t6">Management System</div>
-        </div>
-            
     </div>
 
-    <aside>
-        <a><img alt="DAMA NL logo" style="border-width:0; width:60px;height:32.75px;" src="logos/dama-logo.webp" /></a>
-        <h3>Data Quality Management System (DQMS)</h3>
-        <p>The Data Quality working group of the Data Management Association in the Netherlands (DAMA NL), has been developing a Data Quality Management System (DQMS)
-            using ISO 9001 as a frame of reference.
-            </p>
-        <p>
-            ISO 9001 is intended for the quality of products and services in general and is
-            rarely applied to data quality. In order to apply ISO 9001 to data quality, we need to convert the terms of elements used in ISO 9001 to
-            terms that are common in the data domain.
-        </p>
-        <p>
-            The elements in the data domain may have specific interdependencies, which are shown in the form of
-            connections between elements. The connections have properties (labels) and directionality (arrows).
-        </p>
-        <p>
-            Use the set of controls below to discover elements and their relationships with other elements:
-        </p>
-        <div class="rdobtn_frame">
-            <input type="radio" id="rdo_btn1" name="element_sel" value="Uncategorised">
-            <label for="rdo_btn1"> Display Supporting elements </label><br>
-            <input type="radio" id="rdo_btn2" name="element_sel" value="Operational">
-            <label for="rdo_btn2"> Display Operational elements </label><br>
-            <input type="radio" id="rdo_btn3" name="element_sel" value="Tactical">
-            <label for="rdo_btn3"> Display Tactical elements </label><br>
-            <input type="radio" id="rdo_btn4" name="element_sel" value="Strategic">
-            <label for="rdo_btn4"> Display Strategic elements </label><br>
-            <input type="radio" id="rdo_btn5" name="element_sel" value="Objective">
-            <label for="rdo_btn5"> Display Objective elements </label><br>
-            <input type="radio" id="rdo_btn6" name="element_sel" value="MS">
-            <label for="rdo_btn6"> Display Management Systems </label><br>
-            <input type="radio" id="rdo_btn7" name="element_sel" value="All" checked>
-            <label for="rdo_btn7"> Display all elements</label><br>
-
+    <!-- D3.js Library -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.2.2/d3.v3.min.js"></script>
+        
+    <!-- Header with Theme Toggle -->
+    <header class="navbar bg-base-100 shadow-lg sticky top-0 z-40">
+        <div class="flex-1">
+            <div class="flex items-center gap-3 px-4">
+                <img alt="DAMA NL logo" class="h-10 w-auto" src="logos/dama-logo.webp" />
+                <div>
+                    <h1 class="text-xl font-bold text-primary">DQMS: Elements and Relationships</h1>
+                    <p class="text-xs text-base-content opacity-70">JSON v0.5 | Visualization v1.0</p>
+                </div>
+            </div>
         </div>
-        <div class="chkbox_frame">
-            <input type="checkbox" id="chk_box1" name="chk_box1">
-            <label for="chk_box1"> Display all connections for directionality </label><br>
-            <input type="checkbox" id="chk_box2" name="chk_box2" disabled="disabled">
-            <label for="chk_box2"> Display all properties (labels) of all connections </label>        
+        <div class="flex-none gap-2">
+            <!-- Node Search -->
+            <div class="dropdown dropdown-end">
+                <div class="form-control">
+                    <input 
+                        type="text" 
+                        id="node-search-input"
+                        placeholder="Search nodes..." 
+                        class="input input-bordered input-sm"
+                        style="width: 200px;"
+                        autocomplete="off"
+                    />
+                </div>
+                <ul id="search-results" class="dropdown-content z-[50] menu p-2 shadow-lg bg-base-100 rounded-box w-64 max-h-96 overflow-auto hidden border border-base-300">
+                    <!-- Search results will be populated here -->
+                </ul>
+            </div>
+            
+            <!-- Theme Toggle -->
+            <label class="swap swap-rotate btn btn-ghost btn-circle">
+                <input type="checkbox" id="theme-toggle" />
+                
+                <!-- Sun icon (light mode) -->
+                <svg class="swap-off fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/>
+                </svg>
+                
+                <!-- Moon icon (dark mode) -->
+                <svg class="swap-on fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"/>
+                </svg>
+            </label>
+            
+            <!-- Info Button -->
+            <button class="btn btn-ghost btn-circle" onclick="document.getElementById('info_modal').showModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </button>
         </div>
-        <br/>
-        <h3>Sources</h3>  
-        <ul>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-4 lg:p-6 max-w-screen-2xl">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <li><a rel="DAMA-NL" href="https://dama-nl.org/werkgroepen/werkgroep-datakwaliteit/" target="_blank">Website DAMA NL Working Group for Data Quality</a></li>
-            <li><a rel="DAMA-SOURCE" href="https://www.dama-nl.org/wp-content/uploads/2022/05/A-Management-System-for-Data-Quality-DAMA-NL-v2.2-EN-1.pdf" target="_blank">White paper: A Management System for Data Quality</a></li>
-            <li><a rel="Wiki" href="https://datamanagement.wiki/start" target="_blank">DAMA NL Data Quality Management System in Wiki</li>
-            <li><a rel="DQMSIMAGE" href="https://datamanagement.wiki/_detail/data_quality_general/metromodel_v9-en.jpg?id=data_quality_general%3Adata_quality_management_system" target="_blank">DQMS metromodel visual</a></li>
-            
-        </ul>
+            <!-- Sidebar -->
+            <div class="lg:col-span-4 xl:col-span-3 space-y-4">
                 
-        <br/>
-        <!--<p><a rel="license" href="http://creativecommons.org/licenses/by/4.0/" target="_blank"></a>
-            <br/>-->
-        <!--
-        <p>-->
-        <!--<a><img alt="DAMA NL logo" style="border-width:0; width:60px;height:32.75px;" src="logos/dama-logo.webp" /></a>-->
-            <!--<a><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a>.-->
-        <!--</p>-->            
-    
-      </aside>
+                <!-- Interactive Legend & Filter Card -->
+                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="card-body p-4">
+                        <h2 class="card-title text-primary text-base mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                            </svg>
+                            Filter Elements
+                        </h2>
+                        
+                        <!-- Hidden radio buttons -->
+                        <input type="radio" name="element_sel" id="rdo_btn1" value="Uncategorised" class="hidden" />
+                        <input type="radio" name="element_sel" id="rdo_btn2" value="Operational" class="hidden" />
+                        <input type="radio" name="element_sel" id="rdo_btn3" value="Tactical" class="hidden" />
+                        <input type="radio" name="element_sel" id="rdo_btn4" value="Strategic" class="hidden" />
+                        <input type="radio" name="element_sel" id="rdo_btn5" value="Objective" class="hidden" />
+                        <input type="radio" name="element_sel" id="rdo_btn6" value="MS" class="hidden" />
+                        <input type="radio" name="element_sel" id="rdo_btn7" value="All" checked class="hidden" />
+                        
+                        <!-- Horizontal Grid of Filter Buttons -->
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <label for="rdo_btn1" class="filter-btn flex flex-col items-center gap-3 px-2 py-3 rounded-lg cursor-pointer transition-all hover:bg-base-200 border-2 border-transparent hover:border-base-300">
+                                <div class="w-7 h-7 rounded-full shrink-0 shadow-sm" style="background-color: #C40233;"></div>
+                                <span class="text-xs font-medium text-center leading-tight">Supporting</span>
+                            </label>
+                            
+                            <label for="rdo_btn2" class="filter-btn flex flex-col items-center gap-3 px-2 py-3 rounded-lg cursor-pointer transition-all hover:bg-base-200 border-2 border-transparent hover:border-base-300">
+                                <div class="w-7 h-7 rounded-full shrink-0 shadow-sm" style="background-color: #9DC3E6;"></div>
+                                <span class="text-xs font-medium text-center leading-tight">Operational</span>
+                            </label>
+                            
+                            <label for="rdo_btn3" class="filter-btn flex flex-col items-center gap-3 px-2 py-3 rounded-lg cursor-pointer transition-all hover:bg-base-200 border-2 border-transparent hover:border-base-300">
+                                <div class="w-7 h-7 rounded-full shrink-0 shadow-sm" style="background-color: #5B9BD5;"></div>
+                                <span class="text-xs font-medium text-center leading-tight">Tactical</span>
+                            </label>
+                            
+                            <label for="rdo_btn4" class="filter-btn flex flex-col items-center gap-3 px-2 py-3 rounded-lg cursor-pointer transition-all hover:bg-base-200 border-2 border-transparent hover:border-base-300">
+                                <div class="w-7 h-7 rounded-full shrink-0 shadow-sm" style="background-color: #1F4E79;"></div>
+                                <span class="text-xs font-medium text-center leading-tight">Strategic</span>
+                            </label>
+                            
+                            <label for="rdo_btn5" class="filter-btn flex flex-col items-center gap-3 px-2 py-3 rounded-lg cursor-pointer transition-all hover:bg-base-200 border-2 border-transparent hover:border-base-300">
+                                <div class="w-7 h-7 rounded-full shrink-0 shadow-sm" style="background-color: #FF8E1D;"></div>
+                                <span class="text-xs font-medium text-center leading-tight">Objective</span>
+                            </label>
+                            
+                            <label for="rdo_btn6" class="filter-btn flex flex-col items-center gap-3 px-2 py-3 rounded-lg cursor-pointer transition-all hover:bg-base-200 border-2 border-transparent hover:border-base-300">
+                                <div class="w-7 h-7 rounded-full shrink-0 shadow-sm" style="background-color: #FFEB3B;"></div>
+                                <span class="text-xs font-medium text-center leading-tight">Management</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Show All Button (Full Width) -->
+                        <label for="rdo_btn7" class="filter-btn flex items-center justify-center gap-2 px-3 py-3 rounded-lg cursor-pointer transition-all bg-primary/10 border-2 border-primary shadow-sm hover:shadow-md mb-4">
+                            <div class="w-5 h-5 rounded-full shrink-0 bg-gradient-to-br from-primary to-secondary"></div>
+                            <span class="text-sm font-bold text-primary">Show All</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </label>
 
-<script>
+                        <div class="divider my-2 text-xs">Connection Options</div>
 
-var width = 1100, height = 630;
-
-var margin = {top: 8, right: 10, bottom: 100, left: 0} 
-
-var w = 1100, h = 630, r = 6;
-    
-var padding = 1.5, clusterPadding = 6, maxRadius = 12, count = 0;
-
-var n, m = 20; 
-
-var toggle = 0;
-
-const color = ["#C40233","#9DC3E6", "#5B9BD5", "#1F4E79", "#FF8E1D", "#FFEB3B"];
-
-// Initialize: the network diagram is shown with all links and relationship labels hidden
-var flag_links = "off"; // Check-box for links not ticked
-var flag_labels = "off"; // Check-box for labeling not ticked
-var flag_selected_elements = "off" // No specific elements selected for viewing, so show all
-
-var force = d3.layout.force()
-    .charge(-300)  // Reduced from -500 for faster calculations
-    .linkDistance(200)  // Reduced from 300 for tighter layout
-    .gravity(0.15) // Slightly increased for faster stabilization
-    .friction(0.85)  // Added friction for faster settling
-    .size([width, height]);    
-    
-// OPTIMIZATION: Load data locally instead of from GitHub raw URL
-d3.json("Data/Data.json", function (error, graph) {
+                        <div class="space-y-1.5">
+                            <label class="flex items-center gap-3 hover:bg-base-200 rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
+                                <input type="checkbox" id="chk_box1" name="chk_box1" class="checkbox checkbox-primary checkbox-sm" />
+                                <span class="text-xs font-medium">Show directionality</span>
+                            </label>
+                            <label class="flex items-center gap-3 hover:bg-base-200 rounded-lg px-3 py-2.5 cursor-pointer transition-colors opacity-60">
+                                <input type="checkbox" id="chk_box2" name="chk_box2" disabled class="checkbox checkbox-primary checkbox-sm" />
+                                <span class="text-xs font-medium">Show labels</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             
-            if (error) {
-                return console.warn(error);
-            }
+                <!-- Resources Card -->
+                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="card-body p-4">
+                        <h2 class="card-title text-primary text-base mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            Resources & Links
+                        </h2>
+                        
+                        <div class="space-y-2">
+                            <!-- Working Group -->
+                            <a href="https://dama-nl.org/werkgroepen/werkgroep-datakwaliteit/" target="_blank" 
+                               class="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 border border-primary/20 hover:border-primary/40 transition-all group">
+                                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-semibold text-base-content group-hover:text-primary transition-colors">DAMA NL Working Group</div>
+                                    <div class="text-xs text-base-content/60 mt-0.5">Data Quality Team</div>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
 
+                            <!-- White Paper -->
+                            <a href="https://www.dama-nl.org/wp-content/uploads/2022/05/A-Management-System-for-Data-Quality-DAMA-NL-v2.2-EN-1.pdf" target="_blank" 
+                               class="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-secondary/5 to-secondary/10 hover:from-secondary/10 hover:to-secondary/20 border border-secondary/20 hover:border-secondary/40 transition-all group">
+                                <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-semibold text-base-content group-hover:text-secondary transition-colors">White Paper (PDF)</div>
+                                    <div class="text-xs text-base-content/60 mt-0.5">Management System Guide</div>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 group-hover:text-secondary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
 
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height)
+                            <!-- Wiki -->
+                            <a href="https://datamanagement.wiki/start" target="_blank" 
+                               class="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-accent/5 to-accent/10 hover:from-accent/10 hover:to-accent/20 border border-accent/20 hover:border-accent/40 transition-all group">
+                                <div class="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-semibold text-base-content group-hover:text-accent transition-colors">DQMS Wiki</div>
+                                    <div class="text-xs text-base-content/60 mt-0.5">Documentation Hub</div>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
 
-    .attr("transform",
-            "translate(" +  margin.left + "," + margin.top + ")")
-    //.attr("dx", (w / 2) - 50)
+                            <!-- Metromodel -->
+                            <a href="https://datamanagement.wiki/_detail/data_quality_general/metromodel_v9-en.jpg?id=data_quality_general%3Adata_quality_management_system" target="_blank" 
+                               class="flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-info/5 to-info/10 hover:from-info/10 hover:to-info/20 border border-info/20 hover:border-info/40 transition-all group">
+                                <div class="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-semibold text-base-content group-hover:text-info transition-colors">Metromodel Visual</div>
+                                    <div class="text-xs text-base-content/60 mt-0.5">System Diagram</div>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 group-hover:text-info transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+    </div>
 
-    .attr("style", "outline: thin solid lightgrey;")
-    .style("background-color", "white")
-         
-    //---------------------------------------------------------------------
+            <!-- Visualization Area -->
+            <div class="lg:col-span-8 xl:col-span-9">
+                <div class="card bg-base-100 shadow-xl h-full">
+                    <div class="card-body p-4 lg:p-6">
+                        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+                            <h2 class="card-title text-primary text-base lg:text-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                                Interactive Network Graph
+                            </h2>
+                            <div class="badge badge-info badge-sm gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                                </svg>
+                                <span class="hidden sm:inline">Click • Zoom • Pan</span>
+                                <span class="sm:hidden">Interactive</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gradient-to-br from-base-100 to-base-200 rounded-lg border border-base-300 overflow-auto shadow-inner" style="min-height: 650px;">
+                            <div id="chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
 
-    //https://jsfiddle.net/fF4L4/43/
-
-    .append("svg:g")
-    .attr("class","drawarea")
-    .append("svg:g")
-    //.attr("transform", "translate(" + m[3] + "," + m[0] + ")" );
-    .attr('transform', 'translate(' + [225, 150] + ') scale(' + 0.5 + ')')
-
-    //---------------------------------------------------------------------
-
-    d3.select("svg")
-        .call(d3.behavior.zoom()
-              .scaleExtent([0.5, 5])
-              .on("zoom", zoom))
-
-              .on("dblclick.zoom", null)
-    
-    
-        
-    //-----------------------------
-    /*
-    .call(
-
-    d3.behavior.zoom()
-    .scaleExtent([0.5, 4])
-    .on("zoom", zoom)
-    
-    )
-    .on("dblclick.zoom", null) // disables zoom upon double-click
-    //.on("wheel.zoom", null)
-    .append("g");
-    */
-    //-----------------------------
-    
-    // Moving svg to center of canvas and setting the zooming factor to 0.6
-    /// --> svg.attr('transform', 'translate(' + [200, 120] + ') scale(' + 0.6 + ')')
-
-    //https://stackoverflow.com/questions/8681607/how-do-i-specify-the-initial-zoom-level-in-d3
-
-    //--->see: https://codepen.io/msolomon/pen/PJOVeE <----
-     
-
-    //------------------------------------------------
-
-var svg_status_text = d3.select("svg").append("svg")
-    .append("text")
-    .attr("dy", h /2)
-    .attr("dx", (w / 2) - 50)
-    .style("stroke", "black")
-    .style("stroke-width",0)
-    .text("Preparing visualisation ....")
-    .attr("font-family", "Arial, Helvetica, sans-serif")
-    .style("font", "14px Arial")
-    .transition(1500)  // Reduced from 3000
-	.duration(1000)    // Reduced from 2000
-    .style("opacity", 0)
-    .style('pointer-events', 'none');
-
-var div = d3.select('body').append('div')
-    .style("position", "absolute")
-    .style("text-align", "left")
-    .style("width", "110px")
-    .style("color","black")
-    .style("background-color", "lightyellow")
-    .style("font-family", "Helvetica")
-    .style("font-size", "11px")
-    .style("padding-left","3px")
-    .style("padding-right","3px")
-    .style("padding-top","2px")
-    .style("padding-bottom","2px")
-    .style("opacity", 0);
-
-
-    svg.append('defs').append('marker')
-    .attr("id",'arrowhead')
-    //.attr('viewBox','-0 -5 10 10')
-    .attr('viewBox','-0 -3 10 10') //the bound of the SVG viewport for the current SVG fragment. defines a coordinate system 10 wide and 10 high starting on (0,-5)
-    .attr('refX',16) // x coordinate for the reference point of the marker. If circle is bigger, this needs to be bigger.
-    .attr('refY',0.01)
-    .attr('orient','auto')
-    .attr('markerWidth',11)
-    .attr('markerHeight',7)
-    .attr('xoverflow','visible')
-    .append('svg:path')
-    // .attr('d', 'M 0,-5 L 10 ,0 L 0,5') Original dimensions
-    .attr('d', 'M 0,-3 L 10 ,0 L 0,3 z')
-    .attr('fill', '#666')
-    .style('stroke','none');
-
-
-var linkedByIndex = {};
- 
-var n = graph.nodes.length; //was: graph.nodes.length
-
-    // Added code to re-map node names to indexes:
-    // https://stackoverflow.com/questions/14629853/json-representation-for-d3-force-directed-networks?rq=3
-    
-    var nodeMap = {};
-    graph.nodes.forEach(function(x) { nodeMap[x.name] = x; });
-    graph.links = graph.links.map(function(x) {
-      return {
-        source: nodeMap[x.source],
-        target: nodeMap[x.target],
-        value: x.value,
-        property: x.property
-      };
-    });
-    
-    force
-            
-        .nodes(graph.nodes)
-        .links(graph.links)
-
-    // Initialize the positions deterministically, for better results.
-    graph.nodes.forEach(function(d, i) { d.x = d.y = width / n * i; });
-
-
-setTimeout(function() {
-        
-    force.start();
-    
-    // Reduced iterations from 500 to 150 for faster initial layout
-    for (var i = 150; i > 0; --i) force.tick();
-
-    force.stop();
-        
-    var ox = 0, oy = 0;
-    graph.nodes.forEach(function(d) { ox += d.x, oy += d.y; });
-    ox = ox / n - width / 2, oy = oy / n - height / 2;
-    graph.nodes.forEach(function(d) { d.x -= ox, d.y -= oy; });
-
-    force.start()
-          
-    var link = svg.selectAll(".link")        
-        .data(graph.links)
-        .enter()        
-        .append("line")
-        .attr("class", "link")    
-    
-    var edgepaths = svg.selectAll(".edgepath")
-        .data(graph.links)
-        .enter()
-        .append('path')
-        .attr('class', 'link')
-        .attr('fill-opacity', 0)
-        .attr('stroke-opacity', 1)                
-        .attr('id', function (d, i) {return 'edgepath' + i})
-        .on("mouseover",mouseover_edges)        
-        .attr('marker-end','url(#arrowhead)');
-
-    var linkText = svg.selectAll(".edgelabel")        
-        .data(graph.links)
-        .enter()
-        .append('text')
-        .style("pointer-events", "none")
-        .attr('class', 'edgelabel')
-        .attr('id', function (d, i) {return 'edgelabel' + i})
-        .attr("font-family", "Arial, Helvetica, sans-serif")
-        .style("font", "bold 12px Arial")
-        .attr('fill', '#aaa')
-        
-        linkText.append('textPath') //To render text along the shape of a <path>, enclose the text in a <textPath> element that has an href attribute with a reference to the <path> element.
-        .attr('xlink:href', function (d, i) {return '#edgepath' + i})        
-        .style("text-anchor", "middle")
-        .style("pointer-events", "none")
-        .attr("startOffset", "50%")
-        
-        .text(d => d.property)                
-        .style("font", "normal 12px Arial")
-        .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff");   
-
-    var node = svg.selectAll(".node")        
-        .data(graph.nodes)
-        .enter()
-        .append("g")
-        .attr("class", "node")
-        .on("mouseover", mouseover)        
-        .on("mouseout", mouseout)
-        .on("click", click)
-        .on("contextmenu", context_menu)
-        .call(force.drag);
-    
-        node.append("circle")
-        //.attr("r", d=> 17)//+ d.runtime/20 )
-        .attr("r", 8)
-        .style("fill", function (d) { return color[d.group]; })
-    
-            
-    node.append("text")
-    .attr("dy", 4)
-    .attr("dx", 12)
-    .style("stroke", "black")
-    .style("stroke-width",0)
-    .text(d => d.name)
-    .style("font", "bold 12px Arial")
-    .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff")
-     
-         edgepaths.attr("d", function(d) {
-             
-         var dx = d.target.x - d.source.x,
-             dy = d.target.y - d.source.y,
-             dr = Math.sqrt(dx * dx + dy * dy);
-         return "M" + 
-             d.source.x + "," + 
-             d.source.y + "A" + 
-             dr + "," + dr + " 0 0,1 " + 
-             d.target.x + "," + 
-             d.target.y;
-         }); 
-
-    node.attr("transform", function (d) {return "translate(" + d.x + ", " + d.y + ")";});
-
-    linkText.attr('transform', function (d) {
-            if (d.target.x < d.source.x) {
-                var bbox = this.getBBox();
-
-                rx = bbox.x + bbox.width / 2;
-                ry = bbox.y + bbox.height / 2;
+    <!-- Info Modal -->
+    <dialog id="info_modal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg flex items-center gap-2 text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                About DQMS
+            </h3>
+            <div class="py-4 space-y-4 text-sm">
+                <p>The Data Quality working group of the Data Management Association in the Netherlands (<strong>DAMA NL</strong>), has been developing a Data Quality Management System (DQMS) using <span class="badge badge-sm badge-outline">ISO 9001</span> as a frame of reference.</p>
                 
-                return 'rotate(180 ' + rx + ' ' + ry + ')';
+                <p>ISO 9001 is intended for the quality of products and services in general and is rarely applied to data quality. In order to apply ISO 9001 to data quality, we need to convert the terms of elements used in ISO 9001 to terms that are common in the data domain.</p>
                 
-            }
-            else {
-                return 'rotate(0)';                
-            }
-                    
+                <p>The elements in the data domain may have specific interdependencies, which are shown in the form of connections between elements. The connections have properties (labels) and directionality (arrows).</p>
+                
+                <div class="alert alert-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span><strong>Tip:</strong> Click on nodes to explore relationships, use scroll to zoom, and drag to pan the visualization.</span>
+                </div>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-primary">Got it!</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Load modular JavaScript files -->
+    <script type="module" src="js/main.js"></script>
+    
+    <!-- Theme Toggle & Interactive Filter Script -->
+    <script>
+        // Load saved theme or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-toggle').checked = savedTheme === 'dark';
+        
+        // Theme toggle functionality
+        document.getElementById('theme-toggle').addEventListener('change', function(e) {
+            const theme = e.target.checked ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            // Update graph theme dynamically
+            updateGraphTheme();
         });
-
-
-graph.links.forEach(function(d) {
-            linkedByIndex[d.source.index + "," + d.target.index] = 1;
-            linkedByIndex[d.target.index + "," + d.source.index] = 1;
+        
+        // Function to update graph colors based on current theme
+        function updateGraphTheme() {
+            // Check if d3 and graph elements exist
+            if (typeof d3 === 'undefined' || !document.querySelector('.node')) {
+                return;
+            }
+            
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#ffffff' : '#1a1a1a';
+            const strokeColor = isDark ? '#1a1a1a' : '#ffffff';
+            const textColorAlpha = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(26, 26, 26, 0.7)';
+            const arrowColor = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(26, 26, 26, 0.5)';
+            const linkColor = isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(26, 26, 26, 0.3)';
+            const nodeStrokeColor = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(26, 26, 26, 0.2)';
+            
+            // Update node strokes with smooth transition
+            d3.selectAll('.node circle')
+                .transition()
+                .duration(300)
+                .style('stroke', nodeStrokeColor);
+            
+            // Update links
+            d3.selectAll('.link')
+                .transition()
+                .duration(300)
+                .style('stroke', linkColor);
+            
+            // Update node labels - force the color update
+            d3.selectAll('.node text')
+                .transition()
+                .duration(300)
+                .style('fill', textColor)
+                .style('stroke', strokeColor);
+            
+            // Update edge labels and their text paths
+            d3.selectAll('.edgelabel')
+                .transition()
+                .duration(300)
+                .attr('fill', textColorAlpha);
+                
+            d3.selectAll('.edgelabel textPath')
+                .transition()
+                .duration(300)
+                .style('fill', textColorAlpha)
+                .style('stroke', strokeColor);
+            
+            // Update arrow markers - force the color update
+            d3.selectAll('#arrowhead path')
+                .transition()
+                .duration(300)
+                .attr('fill', arrowColor)
+                .style('fill', arrowColor);
+        }
+        
+        // Make updateGraphTheme globally accessible
+        window.updateGraphTheme = updateGraphTheme;
+        
+        // Update graph theme on load (after D3 renders)
+        window.addEventListener('load', function() {
+            setTimeout(updateGraphTheme, 1000);
+            // Also update periodically to catch any late renders
+            setTimeout(updateGraphTheme, 2000);
         });
-
         
-
-
-
-        }, 30);
-
-
-function neighboring(a, b) {
-    return a.index == b.index || linkedByIndex[a.index + "," + b.index];
-}
-
-
-function mouseover(d) {
-    var str_link_status;
-    var mouse_x = d3.event.pageX;
-    var mouse_y = d3.event.pageY;
-
-    if (mouse_x + 110 > 1480) {
-        mouse_x = mouse_x - 120;
-    }
-
-    if (mouse_y - 15 < 115) {
-        mouse_y = mouse_y + 10;
-    } else {
-        mouse_y = mouse_y - 30;
-    }
-
-    if (d.wiki_link === "-") {
-        str_link_status = "<td id=2>" + "-" + "</td>";
-    } else {
-        str_link_status = "<td id=2>" + "<a href=" + d.wiki_link + " target='_blank'>" + "Link" + "</a>" + "</td>";
-    }
-
-    div.transition()
-        .duration(200)
-        .style("opacity", .9)
-        .style('pointer-events', 'visible');
-
-    div.html(
-        "<table>" +
-        "<tr>" +
-        "<td>" + "<strong>" + "Wiki source: " + "</strong>" + "</td>" +
-        str_link_status +
-        "</tr>" +
-        "</table>"
-    )
-    .style("left", (mouse_x + 0) + "px")
-    .style("top", (mouse_y) + "px");
-}
-
-function click(d) {
-    if (d3.event.defaultPrevented) return;
-
-    if (flag_selected_elements === "off") {
-        if (toggle == 0) {
-            // Highlight logic
-            d3.select(this).select("circle").attr("r", 10).style("stroke", "black");
-
-            d3.select(this)
-                .select("text")
-                .attr("x", 4)
-                .style("font", "bold 16px Arial")
-                .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff");
-
-            d3.selectAll(".link").style("stroke", "#666")
-                .style("opacity", function(o) {
-                    return o.source === d || o.target === d ? 1 : 0.1;
-                });
-
-            d3.selectAll("circle")
-                .style("stroke", function(o) {
-                    if (neighboring(d, o) == 1) { return "black" }
-                    else { return "white" }
-                });
-
-            d3.selectAll(".node")
-                .style("opacity", function(o) {
-                    return neighboring(d, o) ? 1 : .1;
-                });
-
-            if ((flag_links === "on" && flag_labels === "off") || (flag_links === "on" && flag_labels === "on")) {
-                d3.selectAll(".edgelabel")
-                    .style("opacity", function(o) {
-                        return o.source === d || o.target === d ? 1 : 0;
-                    })
-                    .style("fill", function(o) {
-                        return o.source === d || o.target === d ? "black" : "#666";
-                    });
-            }
+        // Interactive legend filter buttons
+        function updateFilterButtonStates() {
+            const radioButtons = document.querySelectorAll('input[name="element_sel"]');
             
-            d3.selectAll("#arrowhead")
-                .attr('viewBox','-0 -3 10 10')
-                .attr('refX',16)
-                .attr('refY',0.01)
-                .attr('orient','auto')
-                .attr('markerWidth',11)
-                .attr('markerHeight',7)
-                .attr('xoverflow','visible')
-                .append('svg:path')
-                .attr('d', 'M 0,-3 L 10 ,0 L 0,3 z')
-                .attr('fill', '#666')
-                .style('stroke','none');
-
-            toggle = 1;
-        } else {
-            // Reset logic
-            d3.selectAll("circle").attr("r", 8).style("stroke", "white");
-            d3.select(this).select("text")
-                .attr("x", 1)
-                .style("font", "bold 12px Arial")
-                .style("text-shadow", "0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff");
-
-            d3.selectAll(".link").style("stroke", "#666").style("stroke-width", 1.5);
-            d3.selectAll(".link").style("opacity", 0.5);
-            d3.selectAll(".node").style("opacity", 1);
-
-            if ((flag_links === "on" && flag_labels === "on")) {
-                d3.selectAll(".edgelabel").style("opacity", 1);
-            } else {
-                d3.selectAll(".edgelabel").style("opacity", 0);
-            }
-
-            d3.selectAll(".edgelabel").style("fill", "grey");
-            
-            d3.selectAll("#arrowhead")
-                .attr('viewBox','-0 -3 10 10')
-                .attr('refX',16)
-                .attr('refY',0.01)
-                .attr('orient','auto')
-                .attr('markerWidth',11)
-                .attr('markerHeight',7)
-                .attr('xoverflow','visible')
-                .append('svg:path')
-                .attr('d', 'M 0,-3 L 10 ,0 L 0,3 z')
-                .attr('fill', '#666')
-                .style('stroke','none');
-
-            toggle = 0;
-        }
-    }
-}
-
-
-function context_menu(d,i) {
-
-d3.event.preventDefault();
-// Add menu items here per action
-console.log("context menu used")
-
-// https://dev.to/gilfink/adding-a-context-menu-to-d3-force-graph-4f5f
-
-}
-
-
-function mouseout(d) {
-    div.transition()
-        .duration(500)
-        .style("opacity", 0)
-        .style('pointer-events', 'none');
-}
-
-function mouseover_edges(d)
-{
-
-}
-
-/*--------------------------------------------------------------------------
-function zoom() {
-
-    svg.attr("transform", "translate("
-
-    + (d3.event.translate[0] + 200) + "," + (d3.event.translate[1] + 120)
-
-    + ")scale(" + d3.event.scale * 0.6 + ")");
-
-}
------------------------------------------------------------------------------*/
-
-function zoom()
-{
-    // console.log("Zooming: ", d3.event.translate, d3.event.scale);
-    var scale = d3.event.scale,
-        translation = d3.event.translate
-    d3.select(".drawarea")
-        .attr("transform", "translate(" + translation + ")" +
-              " scale(" + scale + ")");
-}
-
-
-/*------------------------
-
-svg.attr("transform", "translate("
-+ (d3.event.translate[0] + 200) + "," + (d3.event.translate[1] + 120) + ")");
-
-d3.event.scale
-
---------------------------*/
-
-
-function update_labels(){
-
-    // For each check box:
-    d3.select("#chk_box2").each(function(o){
-  
-    cb_labels = d3.select(this);
-    grp_labels = cb_labels.property("value")
-
-    // If the box is checked, show labels:
-        if(cb_labels.property("checked")){
-        
-            flag_labels = "on";
-
-            d3.selectAll(".edgelabel").style("opacity", 1)            
-        
-        // Check-box de-selected, so hide labels:
-        }
-        else{
-    
-        flag_labels = "off"
-
-        d3.selectAll(".edgelabel").style("opacity", 0)
-        
-        }
-
-return flag_labels;
-  
-})
-
-
-}
-
-
-function update_links(){
-
-// For each check box:
-d3.select("#chk_box1").each(function(o){
-
-cb_links = d3.select(this);
-grp_links = cb_links.property("value")
-
-// If the box is checked, show labels:
-    if(cb_links.property("checked")){
-    
-        flag_links = "on";
-
-        d3.selectAll(".link").style("display","inline")
-
-        // Enable check-box 2 if it was disabled:
-        d3.select("#chk_box2").attr("disabled", null)
-        
-    // Check-box de-selected, so hide links:
-    }
-    else{
-
-    flag_links = "off"
-    
-    d3.selectAll(".link").style("display","none")
-
-    // Disable check-box 2 if links are disabled:
-    d3.select("#chk_box2").attr("disabled", true)
-    //d3.select("#chk_box2").attr("property", "unchecked")
-    d3.select('#chk_box2').property('checked',false);
-    d3.selectAll(".edgelabel").style("opacity", 0)
-
-    update_labels()
-
-    }
-
-return flag_links;
-
-})
-
-
-}
-
-
-const buttons = d3.selectAll('input');
-        buttons.on('change', function(d) {
-        //console.log('button changed to ' + this.value);
-
-            if (this.value === "Uncategorised"){
-
-                d3.selectAll(".node").transition().duration(300).style("opacity", function(d) {
-                    if (d.group != 0){
-                        return 0.1
-                }
+            radioButtons.forEach(radio => {
+                const label = document.querySelector(`label[for="${radio.id}"]`);
+                if (!label) return;
                 
-                })
+                const colorDot = label.querySelector('div');
                 
-                flag_links = "off"
-                flag_labels = "off"
-                flag_selected_elements = "on"
-
-                d3.select(".dot1").transition().duration(300).style("opacity", 1)
-                d3.select(".dot4").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot2").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot3").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot5").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot6").transition().duration(300).style("opacity", 0.1)
-
-                d3.select('#chk_box1').property('checked',false);
-                d3.select("#chk_box1").attr("disabled", true)
-                d3.select('#chk_box2').property('checked',false);
-                d3.select("#chk_box2").attr("disabled", true)
-
-                update_links()
-                update_labels()
-                
-            }
-
-            if (this.value === "Operational"){
-
-                d3.selectAll(".node").transition().duration(300).style("opacity", function(d) {
-                    if (d.group != 1){
-                        return 0.1
-                }
-                })
-
-                flag_links = "off"
-                flag_labels = "off"
-                flag_selected_elements = "on"
-
-                d3.select(".dot1").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot4").transition().duration(300).style("opacity", 1)
-                d3.select(".dot2").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot3").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot5").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot6").transition().duration(300).style("opacity", 0.1)
-
-                d3.select('#chk_box1').property('checked',false);
-                d3.select("#chk_box1").attr("disabled", true)
-                d3.select('#chk_box2').property('checked',false);
-                d3.select("#chk_box2").attr("disabled", true)
-
-                update_links()
-                update_labels()               
-
-            }
-
-            if (this.value === "Tactical"){
-
-                d3.selectAll(".node").transition().duration(300).style("opacity", function(d) {
-                    if (d.group != 2){
-                        return 0.1
-                }
-                })
-
-                flag_links = "off"
-                flag_labels = "off"
-                flag_selected_elements = "on"
-
-                d3.select(".dot1").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot4").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot2").transition().duration(300).style("opacity", 1)
-                d3.select(".dot3").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot5").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot6").transition().duration(300).style("opacity", 0.1)
-
-                d3.select('#chk_box1').property('checked',false);
-                d3.select("#chk_box1").attr("disabled", true)
-                d3.select('#chk_box2').property('checked',false);
-                d3.select("#chk_box2").attr("disabled", true)
-
-                update_links()
-                update_labels()
-
-                
-
-            }
-
-
-            if (this.value === "Strategic"){
-
-                d3.selectAll(".node").transition().duration(300).style("opacity", function(d) {
-                    if (d.group != 3){
-                        return 0.1
-                }
-                })
-
-                flag_links = "off"
-                flag_labels = "off"
-                flag_selected_elements = "on"
-
-                d3.select(".dot1").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot4").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot2").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot3").transition().duration(300).style("opacity", 1)
-                d3.select(".dot5").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot6").transition().duration(300).style("opacity", 0.1)
-
-                d3.select('#chk_box1').property('checked',false);
-                d3.select("#chk_box1").attr("disabled", true)
-                d3.select('#chk_box2').property('checked',false);
-                d3.select("#chk_box2").attr("disabled", true)
-
-                update_links()
-                update_labels()                
-
-            }
-
-            if (this.value === "Objective"){
-
-                d3.selectAll(".node").transition().duration(300).style("opacity", function(d) {
-                    if (d.group != 4){
-                        return 0.1
+                if (radio.checked) {
+                    // Active state
+                    if (radio.value === 'All') {
+                        label.classList.add('bg-primary/10', 'border-primary', 'shadow-md', 'scale-105');
+                        label.classList.remove('border-transparent', 'bg-base-200');
+                    } else {
+                        label.classList.add('bg-base-200', 'border-primary', 'shadow-md');
+                        label.classList.remove('border-transparent', 'bg-primary/10');
                     }
-                })
-
-                flag_links = "off"
-                flag_labels = "off"
-                flag_selected_elements = "on"
-
-                d3.select(".dot1").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot4").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot2").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot3").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot5").transition().duration(300).style("opacity", 1)
-                d3.select(".dot6").transition().duration(300).style("opacity", 0.1)
-
-                d3.select('#chk_box1').property('checked',false);
-                d3.select("#chk_box1").attr("disabled", true)
-                d3.select('#chk_box2').property('checked',false);
-                d3.select("#chk_box2").attr("disabled", true)
-
-                update_links()
-                update_labels()                
-
-            }
-
-            if (this.value === "MS"){
-
-                d3.selectAll(".node").transition().duration(300).style("opacity", function(d) {
-                    if (d.group != 5){
-                        return 0.1
-                    }                    
-
-                })
-
-                flag_links = "off"
-                flag_labels = "off"
-                flag_selected_elements = "on"
-
-                d3.select(".dot1").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot4").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot2").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot3").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot5").transition().duration(300).style("opacity", 0.1)
-                d3.select(".dot6").transition().duration(300).style("opacity", 1)
-
-                d3.select('#chk_box1').property('checked',false);
-                d3.select("#chk_box1").attr("disabled", true)
-                d3.select('#chk_box2').property('checked',false);
-                d3.select("#chk_box2").attr("disabled", true)
-
-                update_links()
-                update_labels()                
-
-            }
-
-            if (this.value === "All"){
-
-                d3.selectAll(".node").transition().duration(300).style("opacity", 1)
-
-                //flag_links = "on"
-                //flag_labels = "on"
-
-                d3.select(".dot1").transition().duration(300).style("opacity", 1)
-                d3.select(".dot4").transition().duration(300).style("opacity", 1)
-                d3.select(".dot2").transition().duration(300).style("opacity", 1)
-                d3.select(".dot3").transition().duration(300).style("opacity", 1)
-                d3.select(".dot5").transition().duration(300).style("opacity", 1)
-                d3.select(".dot6").transition().duration(300).style("opacity", 1)
-
-                d3.select("#chk_box1").attr("disabled", null)
-                d3.select("#chk_box2").attr("disabled", true)          
-                flag_selected_elements = "off"
-
-                update_links()
-                update_labels()                
-
-            }
-
-        return flag_selected_elements
-
-        })    
-
-
-// When a button change occurs, run the update functions for the links and labels:
-d3.select("#chk_box1").on("change",update_links);
-d3.select("#chk_box2").on("change",update_labels);
-
-});
-
-
+                    // Add pulse effect to color dot
+                    if (colorDot) {
+                        colorDot.style.animation = 'ringPulse 0.6s ease-out';
+                        setTimeout(() => {
+                            colorDot.style.animation = '';
+                        }, 600);
+                    }
+                } else {
+                    // Inactive state
+                    label.classList.remove('bg-primary/10', 'border-primary', 'bg-base-200', 'shadow-md', 'scale-105');
+                    label.classList.add('border-transparent');
+                }
+            });
+        }
+        
+        // Initialize filter button states on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFilterButtonStates();
+            
+            // Add change event listeners to all radio buttons
+            const radioButtons = document.querySelectorAll('input[name="element_sel"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', updateFilterButtonStates);
+            });
+        });
+        
+        // Hide loading screen after page loads
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    loadingScreen.style.transition = 'opacity 0.5s ease-out';
+                    setTimeout(function() {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+            }, 800);
+        });
 </script>
 
 </body>
-    
 </html>
